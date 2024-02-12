@@ -78,20 +78,23 @@ statement_:
 statement:
 	expression |
 	WHEN condition ',' expression ':' expression |
-	SWITCH expression IS cases OTHERS ARROW statement ';' ENDSWITCH |
+	SWITCH expression IS cases OTHERS ARROW statement_ ENDSWITCH |
 	IF condition THEN statement_ other ELSE statement_ ENDIF |
-	FOLD direction operator list_choice ENDFOLD;
+	FOLD direction operator list_choice ENDFOLD ;
 
 other:
-	other ELSIF condition THEN statement ';' |
+	other other_ |
 	%empty ;
+
+other_:
+	ELSIF condition THEN statement_ ;
 
 cases:
 	cases case |
 	%empty ;
 	
 case:
-	CASE INT_LITERAL ARROW statement ';' ; 
+	CASE INT_LITERAL ARROW statement_ ; 
 
 direction:
 	LEFT |
@@ -106,16 +109,17 @@ list_choice:
 	IDENTIFIER ;
 
 condition:
-	condition OROP condition_ |
-	condition_ ;
+	condition OROP condition1 |
+	condition1 ;
 
-condition_:
-	condition_ ANDOP relation |
+condition1:
+	condition1 ANDOP relation |
 	relation ;
 
 relation:
 	'(' condition ')' |
-	expression RELOP expression ;
+	expression RELOP expression |
+	NOTOP condition ;
 
 expression:
 	expression ADDOP term |
@@ -131,12 +135,11 @@ factor:
 	factor EXPOP unary ;
 
 unary:
-	NOTOP primary |
+	NEGOP primary |
 	primary ;
 
 primary:
 	'(' expression ')' |
-	NEGOP expression |
 	INT_LITERAL |
 	REAL_LITERAL |
 	CHAR_LITERAL |
@@ -154,5 +157,6 @@ int main(int argc, char *argv[]) {
 	yyparse();
 	lastLine();
 	return 0;
-} 
+}
+
 
